@@ -8,7 +8,7 @@
   --brand: #f96fd9;
   --brand-fg: #ffffff;
   --link: #1d3f8a;
-  --free: #2f7d4f;
+  --free: #1f6e3d;
   --free-tint: #e4f2e9;
   --paid: #a4442f;
   --paid-tint: #f7e4df;
@@ -27,22 +27,22 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
     --bg: #f8b0e4;
     --surface: #ffffff;
-    --fg: #000000;
-    --muted: #a3acbb;
-    --line: #f96fd9;
+    --fg: #1d2330;
+    --muted: #5b6474;
+    --line: #d9dee6;
     --brand: #f96fd9;
     --brand-fg: #ffffff;
-    --link: #8fb0f0;
-    --free: #7cc79a;
-    --free-tint: #1f3327;
-    --paid: #e8957f;
-    --paid-tint: #3a2620;
-    --note: #3a3418;
-    --error: #ff8a9a;
-    --focus: #8fb0f0;
+    --link: #1d3f8a;
+    --free: #1f6e3d;
+    --free-tint: #e4f2e9;
+    --paid: #a4442f;
+    --paid-tint: #f7e4df;
+    --note: #fdf1c7;
+    --error: #b00020;
+    --focus: #1d3f8a;
   }
 }
 
