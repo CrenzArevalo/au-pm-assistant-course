@@ -10,5 +10,7 @@ if (jwtSecret.length < 32) {
 module.exports = {
   port: Number(process.env.PORT) || 3000,
   jwtSecret,
-  isProd: process.env.NODE_ENV === "production",
+  isProd: process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL),
+  supabaseUrl: (process.env.SUPABASE_URL || "").replace(/\/+$/, ""),
+  supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || "",
 };
