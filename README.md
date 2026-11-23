@@ -1,5 +1,5 @@
 # Australian Property Manager Assistant Training
-
+# Created a sample Learning module 
 ## Setup in VS Code
 
 1. Install Node.js 18 or newer.
