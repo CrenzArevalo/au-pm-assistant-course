@@ -20,18 +20,22 @@ function loadModule(req, res) {
   return mod;
 }
 
-router.get("/modules", (req, res) => {
-  const progress = store.getProgress(req.user.id);
-  res.json(
-    modules.map((m) => ({
-      id: m.id,
-      title: m.title,
-      track: m.track,
-      duration: m.duration,
-      locked: !canAccess(req.user, m),
-      passed: Boolean(progress[m.id]?.passed),
-    }))
-  );
+router.get("/modules", async (req, res, next) => {
+  try {
+    const progress = await store.getProgress(req.user.id);
+    res.json(
+      modules.map((m) => ({
+        id: m.id,
+        title: m.title,
+        track: m.track,
+        duration: m.duration,
+        locked: !canAccess(req.user, m),
+        passed: Boolean(progress[m.id]?.passed),
+      }))
+    );
+  } catch (err) {
+    next(err);
+  }
 });
 
 router.get("/modules/:id", (req, res) => {
@@ -44,47 +48,56 @@ router.get("/modules/:id", (req, res) => {
   });
 });
 
-router.post("/modules/:id/quiz", (req, res) => {
-  const mod = loadModule(req, res);
-  if (!mod) return;
+router.post("/modules/:id/quiz", async (req, res, next) => {
+  try {
+    const mod = loadModule(req, res);
+    if (!mod) return;
 
-  const answers = Array.isArray(req.body.answers) ? req.body.answers : [];
-  const results = mod.quiz.map((q, i) => ({
-    id: q.id,
-    correct: answers[i] === q.answer,
-    explanation: q.explanation,
-  }));
+    const answers = Array.isArray(req.body.answers) ? req.body.answers : [];
+    const results = mod.quiz.map((q, i) => ({
+      id: q.id,
+      correct: answers[i] === q.answer,
+      explanation: q.explanation,
+    }));
 
-  const score = Math.round((100 * results.filter((r) => r.correct).length) / mod.quiz.length);
-  const passed = score >= PASS_MARK;
+    const score = Math.round((100 * results.filter((r) => r.correct).length) / mod.quiz.length);
+    const passed = score >= PASS_MARK;
 
-  const previous = store.getProgress(req.user.id)[mod.id] || {};
-  store.saveProgress(req.user.id, mod.id, {
-    score: Math.max(score, previous.score || 0),
-    passed: passed || Boolean(previous.passed),
-    updatedAt: new Date().toISOString(),
-  });
+    const currentProgress = await store.getProgress(req.user.id);
+    const previous = currentProgress[mod.id] || {};
+    await store.saveProgress(req.user.id, mod.id, {
+      score: Math.max(score, previous.score || 0),
+      passed: passed || Boolean(previous.passed),
+      updatedAt: new Date().toISOString(),
+    });
 
-  res.json({ score, passed, results });
+    res.json({ score, passed, results });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get("/certificate", (req, res) => {
-  if (req.user.tier !== "paid") {
-    return res.status(403).json({ error: "Certificates are for the Paid Training track." });
-  }
-  const progress = store.getProgress(req.user.id);
-  const incomplete = modules.filter((m) => !progress[m.id]?.passed).map((m) => m.id);
-  if (incomplete.length) {
-    return res.status(403).json({
-      error: `Not yet eligible. Pass every module with ${PASS_MARK}% or higher.`,
-      incomplete,
+router.get("/certificate", async (req, res, next) => {
+  try {
+    if (req.user.tier !== "paid") {
+      return res.status(403).json({ error: "Certificates are for the Paid Training track." });
+    }
+    const progress = await store.getProgress(req.user.id);
+    const incomplete = modules.filter((m) => !progress[m.id]?.passed).map((m) => m.id);
+    if (incomplete.length) {
+      return res.status(403).json({
+        error: `Not yet eligible. Pass every module with ${PASS_MARK}% or higher.`,
+        incomplete,
+      });
+    }
+    res.json({
+      name: req.user.name,
+      issuedOn: new Date().toISOString().slice(0, 10),
+      course: "Australian Property Manager Assistant Training",
     });
+  } catch (err) {
+    next(err);
   }
-  res.json({
-    name: req.user.name,
-    issuedOn: new Date().toISOString().slice(0, 10),
-    course: "Australian Property Manager Assistant Training",
-  });
 });
 
 module.exports = router;

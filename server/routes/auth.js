@@ -22,7 +22,7 @@ router.post("/login", loginLimiter, async (req, res, next) => {
   try {
     const email = String(req.body.email || "").trim().toLowerCase();
     const password = String(req.body.password || "");
-    const user = store.findUserByEmail(email);
+    const user = await store.findUserByEmail(email);
     const ok = await bcrypt.compare(password, user ? user.passwordHash : DUMMY_HASH);
 
     if (!user || !ok) {
